@@ -12,7 +12,24 @@ from io import StringIO
 
 
 # In[15]:
+# Apply thresholds directly without merge
+def assign_bucket(row):
+    size = int(row["# in Household"])
+    income = row["Total Household Income"]
 
+    # If household size exceeds table, use largest row
+    if size not in thr_dict:
+        size = max(thr_dict.keys())
+
+    t = thr_dict[size]
+    if income <= t["50%"]:
+        return "≤50% AMI"
+    elif income <= t["80%"]:
+        return "50–80% AMI"
+    elif income <= t["120%"]:
+        return "80–120% AMI"
+    else:
+        return ">120% AMI"
 
 # Set up page
 st.set_page_config(page_title="Twenty15 Compliance Tracker", layout="centered")
@@ -30,10 +47,23 @@ header_row = st.number_input("Row Number of Headers", min_value=0, value=6)
 # Configure Buckets
 st.subheader("Income Bucket Rules")
 
-ami_value = st.number_input("Area Median Income (AMI) in $", min_value=0, value=100000)
-default_pct_edges = "0,0.3,0.5,0.8,1.0,9.9"
-edges_str = st.text_input("Bucket percent edges (0-based, e.g., 0,0.3,0.5,0.8,1,9.9)", value=default_pct_edges)
-labels_str = st.text_input("Bucket labels (comma-separated)", value="0-30% AMI,30-50%,50-80%,80-100%,>100%")
+default_thresholds = pd.DataFrame({
+    "Household Size": [1, 2, 3, 4, 5],
+    "50%":  [46850, 53550, 60250, 66900, 72300],
+    "80%":  [74960, 85680, 96400, 107040, 115680],
+    "120%": [112440, 128520, 144600, 160560, 173520],
+})
+st.caption("Edit the thresholds as needed. Values should be whole dollars.")
+thr_df = st.data_editor(
+    default_thresholds,
+    num_rows="fixed",
+    use_container_width=True
+)
+
+# ami_value = st.number_input("Area Median Income (AMI) in $", min_value=0, value=100000)
+# default_pct_edges = "0,0.3,0.5,0.8,1.0,9.9"
+# edges_str = st.text_input("Bucket percent edges (0-based, e.g., 0,0.3,0.5,0.8,1,9.9)", value=default_pct_edges)
+# labels_str = st.text_input("Bucket labels (comma-separated)", value="0-30% AMI,30-50%,50-80%,80-100%,>100%")
 
 st.caption("Tip: you can rename labels and bucket edges as needed. Extra-wide last edge captures all outliers.")
 
@@ -98,32 +128,40 @@ if file:
 
 # Build buckets
     try:
-        edges = [float(x) for x in edges_str.split(",")]
-        labels = [s.strip() for s in labels_str.split(",")]
-        if len(labels) != (len(edges) - 1):
-            st.error("Number of labels must be exactly one less than number of edges.")
-            st.stop()
+        # Clean numeric values
+        for col in ["50%", "80%", "120%"]:
+        thresholds[col] = thresholds[col].astype(str).str.replace(r"[^\d.]", "", regex=True)
+        thresholds[col] = pd.to_numeric(thresholds[col], errors="coerce")
+
+        # Create a lookup dictionary keyed by household size
+        thr_dict = thresholds.set_index("Household Size").to_dict("index")
+
+        # Count how many are in each bucket
+        bucket_counts = (
+        result.groupby("Income Bucket", dropna=False)
+              .agg(
+                  Units=("Unit", "nunique"),
+                  Residents=("# in Household", "sum"),
+                  Total_Income=("Total Household Income", "sum")
+              )
+              .reset_index()
+        )
+        # Order buckets
+        bucket_order = ["≤50% AMI", "50–80% AMI", "80–120% AMI", ">120% AMI"]
+        result["Income Bucket"] = pd.Categorical(result["Income Bucket"], categories=bucket_order, ordered=True)
+        bucket_counts["Income Bucket"] = pd.Categorical(bucket_counts["Income Bucket"], categories=bucket_order, ordered=True)
+        bucket_counts = bucket_counts.sort_values("Income Bucket")
+        
+        # Show outputs
+        st.subheader("Household Detail (with assigned income buckets)")
+        st.dataframe(result[["Unit", "Unit Type", "Resident Name", "# in Household", "Total Household Income", "Income Bucket"]], use_container_width=True)
+        
+        st.subheader("Bucket Summary")
+        st.dataframe(bucket_counts, use_container_width=True)
+
     except Exception as e:
         st.error(f"Bucket config error: {e}")
         st.stop()
-
-    values_for_cut = data["Total Income in Unit"] / max(ami_value, 1)
-    
-    data["Income Bucket"] = pd.cut(values_for_cut, bins=edges, labels=labels, include_lowest=True, right=False)
-
-
-    # Bucket summary table (counts + residents + total income)
-    bucket_summary = (data.groupby("Income Bucket", dropna=False).agg(
-        Units=("Income Bucket", "size"),
-        Residents=("Total Residents in Unit", "sum"),
-        Total_Unit_Income=("Total Income in Unit", "sum"),).reset_index())
-
-    # Order rows by label order
-    bucket_summary["Income Bucket"] = pd.Categorical(bucket_summary["Income Bucket"], categories=labels, ordered=True)
-    bucket_summary = bucket_summary.sort_values("Income Bucket")
-
-    st.subheader("Bucket Summary (Units bucketed by total **unit** income)")
-    st.dataframe(bucket_summary, use_container_width=True)
 
     # Simple chart
     st.bar_chart(by_bucket["households"])
