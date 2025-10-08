@@ -130,8 +130,8 @@ if file:
     try:
         # Clean numeric values
         for col in ["50%", "80%", "120%"]:
-        thresholds[col] = thresholds[col].astype(str).str.replace(r"[^\d.]", "", regex=True)
-        thresholds[col] = pd.to_numeric(thresholds[col], errors="coerce")
+            thresholds[col] = thresholds[col].astype(str).str.replace(r"[^\d.]", "", regex=True)
+            thresholds[col] = pd.to_numeric(thresholds[col], errors="coerce")
 
         # Create a lookup dictionary keyed by household size
         thr_dict = thresholds.set_index("Household Size").to_dict("index")
