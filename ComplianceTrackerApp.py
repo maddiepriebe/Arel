@@ -47,14 +47,14 @@ header_row = st.number_input("Row Number of Headers", min_value=0, value=6)
 # Configure Buckets
 st.subheader("Income Bucket Rules")
 
-thresholds = pd.DataFrame({
+default_thresholds = pd.DataFrame({
     "Household Size": [1, 2, 3, 4, 5],
     "50%":  [46850, 53550, 60250, 66900, 72300],
     "80%":  [74960, 85680, 96400, 107040, 115680],
     "120%": [112440, 128520, 144600, 160560, 173520],
 })
 st.caption("Edit the thresholds as needed. Values should be whole dollars.")
-thr_df = st.data_editor(
+thresholds = st.data_editor(
     default_thresholds,
     num_rows="fixed",
     use_container_width=True
