@@ -72,7 +72,7 @@ if file:
         data["_income"] = pd.to_numeric(data["_income"], errors="coerce")
 
         # Group by unit
-        result = data.groupby([unit_col, unit_type_col], as_index=False).agg({
+        result = data.groupby(unit_col, as_index=False).agg({
             resident_col: lambda x: ', '.join(x.dropna().astype(str)),
             "_income": "sum"
         })
