@@ -21,7 +21,7 @@ st.title("Income Bucket Counter")
 st.markdown("Upload a CSV or Excel with columns for **Unit**, **Resident Name(s)** and **Annual Income**.")
 
 # Import Files 
-tenant_file = st.file_uploader("Choose a file", type=["xlsx", "csv"])
+file = st.file_uploader("Choose a file", type=["xlsx", "csv"])
 
 # Configure Buckets
 st.subheader("Income Bucket Rules")
