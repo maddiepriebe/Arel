@@ -15,7 +15,7 @@ from io import StringIO
 
 
 # Set up page
-st.set_page_config(page_title="Compliance Tracker", layout="centered")
+st.set_page_config(page_title="Twenty15 Compliance Tracker", layout="centered")
 st.title("Compliance Tracker")
 
 # Directions to User 
@@ -23,6 +23,9 @@ st.markdown("Upload a CSV or Excel with columns for **Unit**, **Resident Name(s)
 
 # Import Files 
 file = st.file_uploader("Choose a file", type=["xlsx", "csv"])
+
+# Define where header is 
+header_row = st.number_input("Row Number of Headers", min_value=0, value=6)
 
 # Configure Buckets
 st.subheader("Income Bucket Rules")
@@ -41,6 +44,10 @@ if file:
             df = pd.read_csv(file)
         else:
             df = pd.read_excel(file)
+            new_header = df.iloc[header_row]
+            df = df[5:]
+            df.columns = new_header
+            df = df.reset_index(drop=True)
     except Exception as e:
         st.error(f"Could not read file: {e}")
         st.stop()
@@ -70,6 +77,7 @@ if file:
             .str.strip()
         )
         data["_income"] = pd.to_numeric(data["_income"], errors="coerce")
+        data["_income"] = data["_income"]*12
 
         # Group by unit
         result = data.groupby(unit_col, as_index=False).agg({
