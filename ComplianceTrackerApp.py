@@ -16,7 +16,7 @@ from io import StringIO
 
 # Set up page
 st.set_page_config(page_title="Compliance Tracker", layout="centered")
-st.title("Income Bucket Counter")
+st.title("Compliance Tracker")
 
 # Directions to User 
 st.markdown("Upload a CSV or Excel with columns for **Unit**, **Resident Name(s)** and **Annual Income**.")
