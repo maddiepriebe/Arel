@@ -148,7 +148,7 @@ if file:
         )
         # Order buckets
         bucket_order = ["≤50% AMI", "50–80% AMI", "80–120% AMI", ">120% AMI"]
-        result["Income Bucket"] = pd.Categorical(result["Income Bucket"], categories=bucket_order, ordered=True)
+        # result["Income Bucket"] = pd.Categorical(result["Income Bucket"], categories=bucket_order, ordered=True)
         bucket_counts["Income Bucket"] = pd.Categorical(bucket_counts["Income Bucket"], categories=bucket_order, ordered=True)
         bucket_counts = bucket_counts.sort_values("Income Bucket")
         
