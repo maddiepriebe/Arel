@@ -160,16 +160,16 @@ if file:
 # Download buttons
 
 st.download_button(
-label="⬇️ Download Detailed Results (CSV)",
-data=detailed_csv,
-            file_name="tenant_bucket_details.csv",
+            label="⬇️ Download Detailed Results (XLSX)",
+            data=detailed_xlsx,
+            file_name="tenant_bucket_details.xlsx",
             mime="text/csv"
         )
         
 st.download_button(
-            label="⬇️ Download Bucket Summary (CSV)",
-            data=summary_csv,
-            file_name="bucket_summary.csv",
+            label="⬇️ Download Bucket Summary (XLSX)",
+            data=summary_xlsx,
+            file_name="bucket_summary.xlsx",
             mime="text/csv"
         )
 
