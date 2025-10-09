@@ -161,19 +161,21 @@ if file:
         summary_xlsx = bucket_counts.to_excel(index=False)
 # Download buttons
 
+        st.markdown("### 📤 Export Results")
+        
+        # One workbook with two sheets (Details + Summary)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            result.to_excel(writer, index=False, sheet_name="Details")
+            bucket_counts.to_excel(writer, index=False, sheet_name="Summary")
+        xlsx_bytes = output.getvalue()
+        
         st.download_button(
-                label="⬇️ Download Detailed Results (XLSX)",
-                data=detailed_xlsx,
-                file_name="tenant_bucket_details.xlsx",
-                mime="text/csv"
-            )
-            
-        st.download_button(
-                label="⬇️ Download Bucket Summary (XLSX)",
-                data=summary_xlsx,
-                file_name="bucket_summary.xlsx",
-                mime="text/csv"
-            )
+            label="⬇️ Download Results (Excel, 2 tabs)",
+            data=xlsx_bytes,
+            file_name="compliance_results.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
 
 # In[ ]:
