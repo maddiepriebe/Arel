@@ -156,10 +156,6 @@ if file:
 
         st.bar_chart(bucket_counts.set_index("Income Bucket")["Units"])
 
-        st.markdown("### 📤 Export Results")
-
-        detailed_xlsx = result.to_excel(index=False)
-        summary_xlsx = bucket_counts.to_excel(index=False)
 # Download buttons
 
     st.markdown("### 📤 Export Results")
