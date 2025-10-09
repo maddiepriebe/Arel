@@ -159,14 +159,14 @@ if file:
         summary_xlsx = bucket_counts.to_excel(index=False)
 # Download buttons
 
-st.download_button(
+    st.download_button(
             label="⬇️ Download Detailed Results (XLSX)",
             data=detailed_xlsx,
             file_name="tenant_bucket_details.xlsx",
             mime="text/csv"
         )
         
-st.download_button(
+    st.download_button(
             label="⬇️ Download Bucket Summary (XLSX)",
             data=summary_xlsx,
             file_name="bucket_summary.xlsx",
