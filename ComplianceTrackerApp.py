@@ -111,15 +111,12 @@ if file:
 
         # Group by unit
         result = data.groupby(unit_col, as_index=False).agg({
-            resident_col: lambda x: ', '.join(x.dropna().astype(str)),
+            resident_col: lambda x: ", ".join(x.dropna().astype(str)),
             "_income": "sum"
-        })
-    
-        # Rename columns for clarity
-        result = result.rename(columns={
+        }).rename(columns={
             resident_col: "Resident Name",
             "_income": "Total Household Income",
-            unit_col: "Unit",
+            unit_col: "Unit"
         })
 
         result["# in Household"] = result["Resident Name"].apply(
@@ -127,44 +124,36 @@ if file:
         )
 
 # Build buckets
-    try:
-        # Clean numeric values
-        for col in ["50%", "80%", "120%"]:
-            thresholds[col] = thresholds[col].astype(str).str.replace(r"[^\d.]", "", regex=True)
-            thresholds[col] = pd.to_numeric(thresholds[col], errors="coerce")
-
+        for colname in ["50%", "80%", "120%"]:
+            thresholds[colname] = (
+                thresholds[colname]
+                .astype(str)
+                .str.replace(r"[^\d.]", "", regex=True)
+                .replace("", np.nan)
+                .astype(float)
+            )
+        
         # Create a lookup dictionary keyed by household size
         thr_dict = thresholds.set_index("Household Size").to_dict("index")
 
-        # Count how many are in each bucket
-        bucket_counts = (
-            result.groupby("Income Bucket", dropna=False)
-              .agg(
-                  Units=("Unit", "nunique"),
-                  Residents=("# in Household", "sum"),
-                  Total_Income=("Total Household Income", "sum")
-              )
-              .reset_index()
-        )
-        # Order buckets
+        result["Income Bucket"] = result.apply(assign_bucket, axis=1)
+
+        # Unit Summary
         bucket_order = ["≤50% AMI", "50–80% AMI", "80–120% AMI", ">120% AMI"]
-        # result["Income Bucket"] = pd.Categorical(result["Income Bucket"], categories=bucket_order, ordered=True)
+        bucket_counts = (
+            result["Income Bucket"]
+            .value_counts()
+            .rename_axis("Income Bucket")
+            .reset_index(name="Units")
+        )
         bucket_counts["Income Bucket"] = pd.Categorical(bucket_counts["Income Bucket"], categories=bucket_order, ordered=True)
         bucket_counts = bucket_counts.sort_values("Income Bucket")
-        
-        # Show outputs
-        # st.subheader("Household Detail (with assigned income buckets)")
-        # st.dataframe(result[["Unit", "Unit Type", "Resident Name", "# in Household", "Total Household Income", "Income Bucket"]], use_container_width=True)
-        
+
+        # Display summary
         st.subheader("Bucket Summary")
-        st.dataframe(bucket_counts)
+        st.dataframe(bucket_counts, use_container_width=True)
 
-    except Exception as e:
-        st.error(f"Bucket config error: {e}")
-        st.stop()
-
-    # Simple chart
-    st.bar_chart(by_bucket["households"])
+        st.bar_chart(bucket_counts.set_index("Income Bucket")["Units"])
 
 
 # In[ ]:
