@@ -158,21 +158,21 @@ if file:
 
 # Download buttons
 
-    st.markdown("### 📤 Export Results")
-        
-    # One workbook with two sheets (Details + Summary)
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        result.to_excel(writer, index=False, sheet_name="Details")
-        bucket_counts.to_excel(writer, index=False, sheet_name="Summary")
-    xlsx_bytes = output.getvalue()
-        
-    st.download_button(
-        label="⬇️ Download Results (Excel, 2 tabs)",
-        data=xlsx_bytes,
-        file_name="compliance_results.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+        st.markdown("### 📤 Export Results")
+            
+        # One workbook with two sheets (Details + Summary)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            result.to_excel(writer, index=False, sheet_name="Details")
+            bucket_counts.to_excel(writer, index=False, sheet_name="Summary")
+        xlsx_bytes = output.getvalue()
+            
+        st.download_button(
+            label="⬇️ Download Results (Excel, 2 tabs)",
+            data=xlsx_bytes,
+            file_name="compliance_results.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
 
 # In[ ]:
