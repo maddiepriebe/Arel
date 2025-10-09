@@ -155,6 +155,24 @@ if file:
 
         st.bar_chart(bucket_counts.set_index("Income Bucket")["Units"])
 
+        detailed_xlsx = result.to_excel(index=False)
+        summary_xlsx = bucket_counts.to_excel(index=False)
+
+        # Download buttons
+        st.download_button(
+            label="⬇️ Download Detailed Results (CSV)",
+            data=detailed_csv,
+            file_name="tenant_bucket_details.csv",
+            mime="text/csv"
+        )
+        
+        st.download_button(
+            label="⬇️ Download Bucket Summary (CSV)",
+            data=summary_csv,
+            file_name="bucket_summary.csv",
+            mime="text/csv"
+        )
+
 
 # In[ ]:
 
