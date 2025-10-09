@@ -65,7 +65,7 @@ thresholds = st.data_editor(
 # edges_str = st.text_input("Bucket percent edges (0-based, e.g., 0,0.3,0.5,0.8,1,9.9)", value=default_pct_edges)
 # labels_str = st.text_input("Bucket labels (comma-separated)", value="0-30% AMI,30-50%,50-80%,80-100%,>100%")
 
-st.caption("Tip: you can rename labels and bucket edges as needed. Extra-wide last edge captures all outliers.")
+# st.caption("Tip: you can rename labels and bucket edges as needed. Extra-wide last edge captures all outliers.")
 
 # Read File
 if file:
@@ -87,7 +87,7 @@ if file:
     cols = list(df.columns)
     unit_col = st.selectbox("Unit column", options=cols)
     resident_col = st.selectbox("Resident name(s) column", options=cols)
-    income_col = st.selectbox("Annual income column", options=cols)
+    income_col = st.selectbox("Monthly Income column", options=cols)
     rent_col = st.selectbox("Monthly rent column", options=cols)
 
 
@@ -123,7 +123,7 @@ if file:
         })
 
         result["# in Household"] = result["Resident Name"].apply(
-            lambda x: len(str(x).split(',')) if pd.notna(x) else 0
+            lambda x: len(str(x).split(',')) if pd.notna(x) else 1
         )
 
 # Build buckets
@@ -153,8 +153,8 @@ if file:
         bucket_counts = bucket_counts.sort_values("Income Bucket")
         
         # Show outputs
-        st.subheader("Household Detail (with assigned income buckets)")
-        st.dataframe(result[["Unit", "Unit Type", "Resident Name", "# in Household", "Total Household Income", "Income Bucket"]], use_container_width=True)
+        # st.subheader("Household Detail (with assigned income buckets)")
+        # st.dataframe(result[["Unit", "Unit Type", "Resident Name", "# in Household", "Total Household Income", "Income Bucket"]], use_container_width=True)
         
         st.subheader("Bucket Summary")
         st.dataframe(bucket_counts, use_container_width=True)
