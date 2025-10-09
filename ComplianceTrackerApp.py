@@ -138,7 +138,7 @@ if file:
 
         # Count how many are in each bucket
         bucket_counts = (
-        result.groupby("Income Bucket", dropna=False)
+            result.groupby("Income Bucket", dropna=False)
               .agg(
                   Units=("Unit", "nunique"),
                   Residents=("# in Household", "sum"),
@@ -157,7 +157,7 @@ if file:
         # st.dataframe(result[["Unit", "Unit Type", "Resident Name", "# in Household", "Total Household Income", "Income Bucket"]], use_container_width=True)
         
         st.subheader("Bucket Summary")
-        st.dataframe(bucket_counts, use_container_width=True)
+        st.dataframe(bucket_counts)
 
     except Exception as e:
         st.error(f"Bucket config error: {e}")
