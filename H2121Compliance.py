@@ -11,7 +11,7 @@ st.title("Heights2121 Compliance Tracker")
 st.markdown("Upload Excel File with columns for **Unit**, **Resident Name(s)** and **Annual Income**.")
 
 # Import Files 
-tenant_file = st.file_uploader("Choose a file", type=["xlsx", "xls"])
+file = st.file_uploader("Choose a file", type=["xlsx", "xls"])
 
 # Define where header is 
 header_row = st.number_input("Row Number of Headers", min_value=0, value=6)
