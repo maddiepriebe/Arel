@@ -33,7 +33,7 @@ default_thresholds = pd.DataFrame({
     3: [25530, 51060,	68080],
     4: [28380,	56760,	75680],
     5: [30660,	61320,	81760]
-})
+}).T
 st.caption("Edit the thresholds as needed. Values should be whole dollars.")
 thresholds = st.data_editor(
     default_thresholds,
