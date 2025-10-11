@@ -51,6 +51,7 @@ if file:
         df = df.reset_index(drop=True)
 
         # Clean Columns
+        df = df.loc[:, df.columns.notna()]
         df.columns = (
             df.columns.astype(str)
               .str.replace(r'\\n', ' ', regex=True)   # replace literal '\n' if any
