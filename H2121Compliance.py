@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from io import StringIO
-
-def clean_file(file):
     
 # Set up page
 st.set_page_config(page_title="H2121 Compliance Tracker", layout="centered")
