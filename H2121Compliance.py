@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from io import StringIO
 
+def clean_file(file):
+    
 # Set up page
 st.set_page_config(page_title="H2121 Compliance Tracker", layout="centered")
 st.title("Heights2121 Compliance Tracker")
@@ -15,7 +17,7 @@ tenant_file = st.file_uploader("Choose a file", type=["xlsx", "xls"])
 
 # Define where header is 
 header_row = st.number_input("Row Number of Headers", min_value=0, value=6)
-st.caption("enter row number where column titles are found in excel file")
+st.caption("enter row number where column titles are found in excel file, see column mapping selection below to see if you selected the correct row number")
 
 
 # Configure Buckets
@@ -40,3 +42,77 @@ thresholds = st.data_editor(
     num_rows="fixed",
     width=True
 )
+
+if file:
+    try:
+        df = pd.read_excel(file)
+        new_header = df.iloc[header_row]
+        df = df[header_row + 1:]
+        df.columns = new_header
+        df = df.reset_index(drop=True)
+
+        # Clean Columns
+        df.columns = (
+            df.columns.astype(str)
+              .str.replace(r'\\n', ' ', regex=True)   # replace literal '\n' if any
+              .str.replace('\n', ' ', regex=False)    # replace real line breaks
+              .str.replace(r'\s+', ' ', regex=True)   # collapse multiple spaces
+              .str.strip()                            # remove leading/trailing spaces
+              .str.replace('NaN', '', regex=False)    # remove "NaN" placeholders
+        )
+        
+    except Exception as e:
+        st.error(f"Could not read file: {e}")
+        st.stop()
+
+    # User maps columns 
+    st.subheader("Map Your Columns")
+    cols = list(df.columns)
+    unit_col = st.selectbox("Unit column", options=cols)
+    resident_col = st.selectbox("Resident name(s) column", options=cols)
+    income_col = st.selectbox("Annual Income column", options=cols)
+    rent_col = st.selectbox("Monthly rent column", options=cols)
+
+
+    # Preview Mapping
+    st.write("Preview:")
+    st.dataframe(df.head(10))
+
+    # Clean & compute
+    if st.button("Process"):
+        data = df.copy()
+        data = data[data[unit_col].notna() & (data[unit_col].astype(str).str.strip() != '')]
+        data[resident_col] = (
+            df[resident_col]
+              .astype(str)
+              .str.split('\n')
+              .str[0]
+              .str.strip()
+        )
+        data = data[[unit_col, resident_col, income_col, rent_col]]
+        
+
+        # Normalize income to numeric
+        data["_income"] = (
+            data[income_col]
+            .astype(str)
+            .str.replace(r"[\$,]", "", regex=True)
+            .str.strip()
+        )
+        data["_income"] = pd.to_numeric(data["_income"], errors="coerce")
+
+        # Group by unit
+        result = data.groupby(unit_col, as_index=False).agg({
+            resident_col: lambda x: ", ".join(x.dropna().astype(str)),
+            "_income": "sum"
+        }).rename(columns={
+            resident_col: "Resident Name",
+            "_income": "Total Household Income",
+            unit_col: "Unit"
+        })
+
+        result["# in Household"] = result["Resident Name"].apply(
+            lambda x: len(str(x).split(',')) if pd.notna(x) else 1
+        )
+
+
