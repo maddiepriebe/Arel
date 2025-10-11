@@ -38,7 +38,7 @@ st.caption("Edit the thresholds as needed. Values should be whole dollars.")
 thresholds = st.data_editor(
     default_thresholds,
     num_rows="fixed",
-    width=True
+    use_container_width=True
 )
 
 if file:
