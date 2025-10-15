@@ -118,7 +118,7 @@ if file:
               .str[0]
               .str.strip()
         )
-        data = data[[unit_col, resident_col, income_col, rent_col]]
+        data = data[[unit_col, resident_col, income_col]]
         
 
         # Normalize income to numeric
