@@ -32,7 +32,7 @@ def clean_name(s):
         s = f"{first} {last}"
     s = re.sub(r'[^\w\s]', '', s).lower()
     s = re.sub(r'\s+', ' ', s).strip()
-    return s
+    return s.title()
     
     
 # Set up page
