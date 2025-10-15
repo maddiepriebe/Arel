@@ -22,6 +22,17 @@ def assign_bucket(row):
         return "60–80% AMI"
     else:
         return ">80% AMI"
+
+def clean_name(s):
+    if ',' in s:
+        parts = [p.strip() for p in s.split(',', 1)]
+        last = parts[0]
+        first = parts[1]
+        s = f"{first} {last}"
+    s = re.sub(r'[^\w\s]', '', s).lower()
+    s = re.sub(r'\s+', ' ', s).strip()
+    return s
+    
     
 # Set up page
 st.set_page_config(page_title="H2121 Compliance Tracker", layout="centered")
@@ -130,6 +141,8 @@ if file:
             .str.strip()
         )
         data["_income"] = pd.to_numeric(data["_income"], errors="coerce")
+
+        data[resident_column] = data[resident_column].apply(clean_name)
 
         # Group by unit
         result = data.groupby(unit_col, as_index=False).agg({
