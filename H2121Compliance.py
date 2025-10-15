@@ -3,6 +3,24 @@ import pandas as pd
 import numpy as np
 from io import StringIO
 import xlrd
+
+def assign_bucket(row):
+    size = int(row["# in Household"])
+    income = row["Total Household Income"]
+
+    # If household size exceeds table, use largest row
+    if size not in thr_dict:
+        size = max(thr_dict.keys())
+
+    t = thr_dict[size]
+    if income <= t["30%"]:
+        return "≤30% AMI"
+    elif income <= t["60%"]:
+        return "30–60% AMI"
+    elif income <= t["80%"]:
+        return "60–80% AMI"
+    else:
+        return ">80% AMI"
     
 # Set up page
 st.set_page_config(page_title="H2121 Compliance Tracker", layout="centered")
@@ -36,11 +54,22 @@ default_thresholds = pd.DataFrame({
     5: [30660,	61320,	81760]
 })
 st.caption("Edit the thresholds as needed. Values should be whole dollars.")
+
 thresholds = st.data_editor(
     default_thresholds,
     num_rows="fixed",
     use_container_width=True
 )
+
+thresholds_df = thresholds.set_index("Thresholds")  # index like "30%","60%","80%"
+thr_dict = {
+    int(hh_size): {
+        "30%": float(thresholds_df.loc[f"{low_threshold}%", hh_size]),
+        "60%": float(thresholds_df.loc[f"{mid_threshold}%", hh_size]),
+        "80%": float(thresholds_df.loc[f"{upper_threshold}%", hh_size]),
+    }
+    for hh_size in thresholds_df.columns
+}
 
 if file:
     try:
@@ -71,7 +100,7 @@ if file:
     unit_col = st.selectbox("Unit column", options=cols)
     resident_col = st.selectbox("Resident name(s) column", options=cols)
     income_col = st.selectbox("Annual Income column", options=cols)
-    rent_col = st.selectbox("Monthly rent column", options=cols)
+    # rent_col = st.selectbox("Monthly rent column", options=cols)
 
 
     # Preview Mapping
@@ -114,5 +143,47 @@ if file:
         result["# in Household"] = result["Resident Name"].apply(
             lambda x: len(str(x).split(',')) if pd.notna(x) else 1
         )
+
+# Build buckets
+
+        result["Income Bucket"] = result.apply(assign_bucket, axis=1)
+
+        # Unit Summary
+        bucket_order = ["≤30% AMI", "30–60% AMI", "60–80% AMI", ">80% AMI"]
+        bucket_counts = (
+            result["Income Bucket"]
+            .value_counts()
+            .rename_axis("Income Bucket")
+            .reset_index(name="Units")
+        )
+        bucket_counts["Income Bucket"] = pd.Categorical(bucket_counts["Income Bucket"], categories=bucket_order, ordered=True)
+        bucket_counts = bucket_counts.sort_values("Income Bucket")
+
+        # Display summary
+        st.subheader("Bucket Summary")
+        st.dataframe(bucket_counts, use_container_width=True)
+
+        st.bar_chart(bucket_counts.set_index("Income Bucket")["Units"])
+
+# Download buttons
+
+        st.markdown("### 📤 Export Results")
+            
+        # One workbook with two sheets (Details + Summary)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            result.to_excel(writer, index=False, sheet_name="Details")
+            bucket_counts.to_excel(writer, index=False, sheet_name="Summary")
+        xlsx_bytes = output.getvalue()
+            
+        st.download_button(
+            label="⬇️ Download Results (Excel, 2 tabs)",
+            data=xlsx_bytes,
+            file_name="compliance_results.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+
+
 
 
