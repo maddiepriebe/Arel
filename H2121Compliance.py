@@ -142,7 +142,7 @@ if file:
         )
         data["_income"] = pd.to_numeric(data["_income"], errors="coerce")
 
-        data[resident_column] = data[resident_column].apply(clean_name)
+        data[resident_col] = data[resident_col].apply(clean_name)
 
         # Group by unit
         result = data.groupby(unit_col, as_index=False).agg({
