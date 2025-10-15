@@ -4,6 +4,7 @@ import numpy as np
 from io import StringIO
 import io
 import xlrd
+import re
 
 def assign_bucket(row):
     size = int(row["# in Household"])
