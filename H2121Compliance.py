@@ -7,12 +7,13 @@ import xlrd
 import re
 
 def assign_bucket(row):
-    if int(row["# in Household"]):
-        size = int(row["# in Household"])
-    else:
+    hh_val  = pd.to_numeric(row.get("# in Household", pd.NA), errors="coerce")
+    income  = pd.to_numeric(row.get("Total Household Income", pd.NA), errors="coerce")
+
+    if name_val == "vacant" or pd.isna(hh_val) or hh_val <= 0:
         return "Vacant"
-        
-    income = row["Total Household Income"]
+
+    size = int(hh_val)
 
     # If household size exceeds table, use largest row
     if size not in thr_dict:
@@ -166,17 +167,26 @@ if file:
         data[resident_col] = data[resident_col].apply(clean_name)
 
         # Group by unit
-        result = data.groupby(unit_col, as_index=False).agg({
+        agg_dict = {
             resident_col: lambda x: ", ".join(x.dropna().astype(str)),
-            "_income": "sum"
-        }).rename(columns={
+            "_income": "sum",
+        }
+        if on:
+            # Take the maximum/first household size per unit (choose one)
+            agg_dict[household_col] = "max"
+        
+        result = data.groupby(unit_col, as_index=False).agg(agg_dict).rename(columns={
             resident_col: "Resident Name",
             "_income": "Total Household Income",
-            unit_col: "Unit"
+            unit_col: "Unit",
         })
-        if not on:
+        
+        if on:
+            result = result.rename(columns={household_col: "# in Household"})
+        else:
+            # Infer household size from the (cleaned) resident list
             result["# in Household"] = result["Resident Name"].apply(
-                lambda x: len(str(x).split(',')) if pd.notna(x) else 1
+                lambda x: len([p for p in str(x).split(',') if p.strip()]) if pd.notna(x) else 0
             )
 
 # Build buckets
