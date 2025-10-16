@@ -34,6 +34,13 @@ def clean_name(s):
     s = re.sub(r'\s+', ' ', s).strip()
     return s.title()
     
+def clean_household(x):
+    if str(x).lower() == 'vacant':
+        return 0
+    try:
+        return int(x)
+    except:
+        return 1  # for True or other truthy values
     
 # Set up page
 st.set_page_config(page_title="H2121 Compliance Tracker", layout="centered")
@@ -114,6 +121,7 @@ if file:
     unit_col = st.selectbox("Unit column", options=cols)
     resident_col = st.selectbox("Resident name(s) column", options=cols)
     income_col = st.selectbox("Annual Income column", options=cols)
+    
     if on:
         household_col = st.selectbox("# in Household", options=cols)
     # rent_col = st.selectbox("Monthly rent column", options=cols)
@@ -137,6 +145,7 @@ if file:
 
         if on:
             data = data[[unit_col, resident_col, income_col, household_col]]
+            data[household_col] = data[household_col].apply(clean_household)
         else:
             data = data[[unit_col, resident_col, income_col]]
         
