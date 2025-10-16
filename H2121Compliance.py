@@ -109,10 +109,13 @@ if file:
 
     # User maps columns 
     st.subheader("Map Your Columns")
+    has_household_count = st.toggle("File contains # occupants in household")
     cols = list(df.columns)
     unit_col = st.selectbox("Unit column", options=cols)
     resident_col = st.selectbox("Resident name(s) column", options=cols)
     income_col = st.selectbox("Annual Income column", options=cols)
+    if on:
+        household_col = st.selectbox("# in Household", options=cols)
     # rent_col = st.selectbox("Monthly rent column", options=cols)
 
 
@@ -131,7 +134,11 @@ if file:
               .str[0]
               .str.strip()
         )
-        data = data[[unit_col, resident_col, income_col]]
+
+        if on:
+            data = data[[unit_col, resident_col, income_col, household_col]]
+        else:
+            data = data[[unit_col, resident_col, income_col]]
         
 
         # Normalize income to numeric
@@ -154,10 +161,10 @@ if file:
             "_income": "Total Household Income",
             unit_col: "Unit"
         })
-
-        result["# in Household"] = result["Resident Name"].apply(
-            lambda x: len(str(x).split(',')) if pd.notna(x) else 1
-        )
+        if not on:
+            result["# in Household"] = result["Resident Name"].apply(
+                lambda x: len(str(x).split(',')) if pd.notna(x) else 1
+            )
 
 # Build buckets
 
