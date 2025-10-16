@@ -7,7 +7,11 @@ import xlrd
 import re
 
 def assign_bucket(row):
-    size = int(row["# in Household"])
+    if int(row["# in Household"]):
+        size = int(row["# in Household"])
+    else:
+        return "Vacant"
+        
     income = row["Total Household Income"]
 
     # If household size exceeds table, use largest row
@@ -180,7 +184,7 @@ if file:
         result["Income Bucket"] = result.apply(assign_bucket, axis=1)
 
         # Unit Summary
-        bucket_order = ["≤30% AMI", "30–60% AMI", "60–80% AMI", ">80% AMI"]
+        bucket_order = ["≤30% AMI", "30–60% AMI", "60–80% AMI", ">80% AMI", "Vacant"]
         bucket_counts = (
             result["Income Bucket"]
             .value_counts()
