@@ -7,6 +7,7 @@ import xlrd
 import re
 
 def assign_bucket(row):
+    name_val = str(row.get("Resident Name", "")).strip().lower()
     hh_val  = pd.to_numeric(row.get("# in Household", pd.NA), errors="coerce")
     income  = pd.to_numeric(row.get("Total Household Income", pd.NA), errors="coerce")
 
