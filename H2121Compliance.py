@@ -109,7 +109,7 @@ if file:
 
     # User maps columns 
     st.subheader("Map Your Columns")
-    has_household_count = st.toggle("File contains # occupants in household")
+    on = st.toggle("File contains # occupants in household")
     cols = list(df.columns)
     unit_col = st.selectbox("Unit column", options=cols)
     resident_col = st.selectbox("Resident name(s) column", options=cols)
